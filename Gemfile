@@ -1,9 +1,9 @@
 source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby "3.2.0"
+ruby "3.2.2"
 
-gem "rails", "~> 7.0.0"
+gem "rails", "~> 7.0.8"
 gem "pg", "~> 1.1"
 gem "puma", "~> 5.0"
 gem "sass-rails", ">= 6"
@@ -20,7 +20,7 @@ gem "httparty"
 
 # Background jobs
 gem "sidekiq"
-gem "sidekiq-web"
+# gem "sidekiq-web"
 gem "redis", "~> 4.0"
 
 # Charts and visualization

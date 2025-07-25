@@ -56,6 +56,23 @@ class YoutubeApiService
     end
   end
 
+  def fetch_channel_by_handle(handle)
+    begin
+      response = youtube.list_channels(
+        'snippet,statistics,brandingSettings',
+        for_handle: handle
+      )
+      
+      return nil if response.items.empty?
+      
+      channel_data = response.items.first
+      process_channel_data(channel_data)
+    rescue Google::Apis::Error => e
+      Rails.logger.error "YouTube API error: #{e.message}"
+      nil
+    end
+  end
+
   def search_channel_by_name(query)
     begin
       response = youtube.list_searches(
@@ -153,8 +170,8 @@ class YoutubeApiService
     # This is an estimate based on API calls
     # Each call type has different quota costs
     {
-      channels_list: 1,
-      search_list: 100,
+      channels_list: 1,          # for_username, for_handle, id
+      search_list: 100,          # search by name (expensive)
       videos_list: 1,
       video_categories_list: 1
     }
@@ -191,11 +208,15 @@ class YoutubeApiService
   end
 
   def search_channel_by_identifier(identifier)
-    # Try username first
+    # Try handle first (for @username format)
+    channel_data = fetch_channel_by_handle(identifier)
+    return { channel_id: channel_data[:id] } if channel_data
+    
+    # Try username
     channel_data = fetch_channel_by_username(identifier)
     return { channel_id: channel_data[:id] } if channel_data
     
-    # Try searching by name
+    # Try searching by name as last resort
     results = search_channel_by_name(identifier)
     return results.first if results.any?
     
