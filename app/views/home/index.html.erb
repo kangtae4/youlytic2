@@ -1,0 +1,196 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <!-- Hero Section -->
+  <div class="text-center py-16">
+    <h1 class="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+      YouTube 채널 분석의 새로운 기준
+    </h1>
+    <p class="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+      유튜브 채널의 성과를 깊이 있게 분석하고, 수익 추정부터 콘텐츠 인사이트까지 
+      모든 데이터를 한눈에 확인하세요
+    </p>
+
+    <!-- Analysis Form -->
+    <div class="max-w-2xl mx-auto">
+      <%= form_with url: analysis_reports_path, method: :post, local: true, class: "space-y-4" do |form| %>
+        <div class="flex flex-col sm:flex-row gap-4">
+          <%= form.text_field :channel_input, 
+                placeholder: "유튜브 채널 URL, ID 또는 채널명을 입력하세요", 
+                class: "flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-lg",
+                required: true %>
+          
+          <%= form.submit "분석 시작", 
+                class: "bg-red-600 text-white px-8 py-3 rounded-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 text-lg font-medium transition duration-200",
+                data: { disable_with: "분석 중..." } %>
+        </div>
+        
+        <div class="text-sm text-gray-500">
+          <% if user_signed_in? %>
+            남은 할당량: <%= @user_quota == Float::INFINITY ? "무제한" : "#{@user_quota}회" %>
+          <% else %>
+            비회원은 일 3회까지 무료로 이용 가능합니다. 
+            <%= link_to "회원가입", new_user_registration_path, class: "text-red-600 hover:text-red-700" %>하여 더 많은 기능을 사용하세요.
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Quick Search Examples -->
+    <div class="mt-8">
+      <p class="text-sm text-gray-500 mb-4">인기 채널로 바로 체험해보세요:</p>
+      <div class="flex flex-wrap justify-center gap-2">
+        <% quick_examples = [
+          { name: "PewDiePie", id: "UC-lHJZR3Gqxm24_Vd_AJ5Yw" },
+          { name: "MrBeast", id: "UCX6OQ3DkcsbYNE6H8uQQuVA" },
+          { name: "T-Series", id: "UCq-Fj5jknLsUf-MWSy4_brA" }
+        ] %>
+        
+        <% quick_examples.each do |example| %>
+          <%= link_to example[:name], 
+                analysis_reports_path, 
+                method: :post, 
+                params: { channel_input: example[:id] },
+                class: "px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-full text-sm text-gray-700 transition duration-200" %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Features Section -->
+  <div class="py-16 bg-white rounded-2xl shadow-sm mb-16">
+    <div class="text-center mb-12">
+      <h2 class="text-3xl font-bold text-gray-900 mb-4">강력한 분석 기능</h2>
+      <p class="text-gray-600">전문가 수준의 YouTube 채널 분석을 누구나 쉽게</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 px-8">
+      <div class="text-center">
+        <div class="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i class="fas fa-chart-line text-red-600 text-2xl"></i>
+        </div>
+        <h3 class="text-xl font-semibold text-gray-900 mb-2">성과 분석</h3>
+        <p class="text-gray-600">조회수, 참여도, 성장률 등 핵심 지표를 종합적으로 분석합니다</p>
+      </div>
+
+      <div class="text-center">
+        <div class="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i class="fas fa-dollar-sign text-green-600 text-2xl"></i>
+        </div>
+        <h3 class="text-xl font-semibold text-gray-900 mb-2">수익 추정</h3>
+        <p class="text-gray-600">다양한 요소를 고려한 정확한 수익 모델로 예상 수익을 계산합니다</p>
+      </div>
+
+      <div class="text-center">
+        <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i class="fas fa-file-export text-blue-600 text-2xl"></i>
+        </div>
+        <h3 class="text-xl font-semibold text-gray-900 mb-2">리포트 내보내기</h3>
+        <p class="text-gray-600">PDF, CSV 형태로 분석 결과를 저장하고 공유할 수 있습니다</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Analyses -->
+  <% if @recent_analyses.any? %>
+    <div class="mb-16">
+      <div class="flex justify-between items-center mb-8">
+        <h2 class="text-2xl font-bold text-gray-900">최근 분석 결과</h2>
+        <span class="text-sm text-gray-500">총 <%= @total_analyses %>개 채널 분석 완료</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <% @recent_analyses.each do |report| %>
+          <div class="bg-white rounded-lg shadow-sm border hover:shadow-md transition duration-200">
+            <div class="p-6">
+              <div class="flex items-center space-x-3 mb-4">
+                <% if report.channel.thumbnail_url %>
+                  <img src="<%= report.channel.thumbnail_url %>" 
+                       alt="<%= report.channel.title %>" 
+                       class="w-12 h-12 rounded-full">
+                <% else %>
+                  <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user text-gray-400"></i>
+                  </div>
+                <% end %>
+                
+                <div class="flex-1 min-w-0">
+                  <h3 class="font-semibold text-gray-900 truncate">
+                    <%= report.channel.title %>
+                  </h3>
+                  <p class="text-sm text-gray-500">
+                    구독자 <%= report.channel.subscriber_count_formatted %>
+                  </p>
+                </div>
+              </div>
+
+              <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                  <span class="text-gray-600">평균 조회수:</span>
+                  <span class="font-medium"><%= report.channel.average_views_per_video.to_s.gsub(/\B(?=(\d{3})+(?!\d))/, ',') %></span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">참여율:</span>
+                  <span class="font-medium"><%= report.channel.engagement_rate %>%</span>
+                </div>
+              </div>
+
+              <div class="mt-4 pt-4 border-t">
+                <%= link_to "분석 결과 보기", public_report_path(report.permalink_token), 
+                      class: "text-red-600 hover:text-red-700 text-sm font-medium" %>
+                <span class="text-gray-400 text-xs ml-2">
+                  <%= time_ago_in_words(report.created_at) %> 전
+                </span>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Popular Channels -->
+  <% if @popular_channels.any? %>
+    <div class="mb-16">
+      <h2 class="text-2xl font-bold text-gray-900 mb-8">인기 채널</h2>
+      
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <% @popular_channels.each do |channel| %>
+          <div class="bg-white rounded-lg p-4 text-center hover:shadow-md transition duration-200">
+            <% if channel.thumbnail_url %>
+              <img src="<%= channel.thumbnail_url %>" 
+                   alt="<%= channel.title %>" 
+                   class="w-16 h-16 rounded-full mx-auto mb-3">
+            <% else %>
+              <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i class="fas fa-user text-gray-400"></i>
+              </div>
+            <% end %>
+            
+            <h3 class="font-medium text-gray-900 truncate mb-1">
+              <%= channel.title %>
+            </h3>
+            <p class="text-sm text-gray-500">
+              <%= channel.subscriber_count_formatted %> 구독자
+            </p>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- CTA Section -->
+  <div class="text-center py-16 bg-gradient-to-r from-red-500 to-red-600 rounded-2xl text-white">
+    <h2 class="text-3xl font-bold mb-4">더 깊은 인사이트가 필요하신가요?</h2>
+    <p class="text-xl mb-8 opacity-90">프리미엄 플랜으로 무제한 분석과 고급 기능을 사용하세요</p>
+    
+    <div class="space-x-4">
+      <% unless user_signed_in? %>
+        <%= link_to "무료로 시작하기", new_user_registration_path, 
+              class: "bg-white text-red-600 px-8 py-3 rounded-lg font-medium hover:bg-gray-50 transition duration-200" %>
+      <% end %>
+      
+      <a href="#" class="border-2 border-white text-white px-8 py-3 rounded-lg font-medium hover:bg-white hover:text-red-600 transition duration-200">
+        프리미엄 요금제 보기
+      </a>
+    </div>
+  </div>
+</div>

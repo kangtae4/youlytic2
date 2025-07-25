@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Youlytic - YouTube 채널 분석 서비스</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex items-center space-x-2">
+                        <i class="fab fa-youtube text-red-600 text-2xl"></i>
+                        <span class="text-xl font-bold text-gray-900">Youlytic</span>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <a href="#" class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">대시보드</a>
+                    
+                    <div class="flex items-center space-x-2 text-sm text-gray-600">
+                        <i class="fas fa-chart-line"></i>
+                        <span>할당량: 3회</span>
+                    </div>
+                    
+                    <a href="#" class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">로그인</a>
+                    <a href="#" class="bg-red-600 text-white hover:bg-red-700 px-4 py-2 rounded-md text-sm font-medium">회원가입</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Hero Section -->
+            <div class="text-center py-16">
+                <h1 class="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+                    YouTube 채널 분석의 새로운 기준
+                </h1>
+                <p class="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+                    유튜브 채널의 성과를 깊이 있게 분석하고, 수익 추정부터 콘텐츠 인사이트까지 
+                    모든 데이터를 한눈에 확인하세요
+                </p>
+
+                <!-- Analysis Form -->
+                <div class="max-w-2xl mx-auto">
+                    <div class="space-y-4">
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <input type="text" id="channelInput"
+                                placeholder="유튜브 채널 URL, ID 또는 채널명을 입력하세요" 
+                                class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-lg">
+                            
+                            <button onclick="startAnalysis()" 
+                                class="bg-red-600 text-white px-8 py-3 rounded-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 text-lg font-medium transition duration-200">
+                                분석 시작
+                            </button>
+                        </div>
+                        
+                        <div class="text-sm text-gray-500">
+                            비회원은 일 3회까지 무료로 이용 가능합니다. 
+                            <a href="#" class="text-red-600 hover:text-red-700">회원가입</a>하여 더 많은 기능을 사용하세요.
+                        </div>
+                    </div>
+
+                    <!-- Quick Search Examples -->
+                    <div class="mt-8">
+                        <p class="text-sm text-gray-500 mb-4">인기 채널로 바로 체험해보세요:</p>
+                        <div class="flex flex-wrap justify-center gap-2">
+                            <button onclick="analyzeChannel('PewDiePie')" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-full text-sm text-gray-700 transition duration-200">PewDiePie</button>
+                            <button onclick="analyzeChannel('MrBeast')" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-full text-sm text-gray-700 transition duration-200">MrBeast</button>
+                            <button onclick="analyzeChannel('T-Series')" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-full text-sm text-gray-700 transition duration-200">T-Series</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features Section -->
+            <div class="py-16 bg-white rounded-2xl shadow-sm mb-16">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">강력한 분석 기능</h2>
+                    <p class="text-gray-600">전문가 수준의 YouTube 채널 분석을 누구나 쉽게</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 px-8">
+                    <div class="text-center">
+                        <div class="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-chart-line text-red-600 text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">성과 분석</h3>
+                        <p class="text-gray-600">조회수, 참여도, 성장률 등 핵심 지표를 종합적으로 분석합니다</p>
+                    </div>
+
+                    <div class="text-center">
+                        <div class="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-dollar-sign text-green-600 text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">수익 추정</h3>
+                        <p class="text-gray-600">다양한 요소를 고려한 정확한 수익 모델로 예상 수익을 계산합니다</p>
+                    </div>
+
+                    <div class="text-center">
+                        <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-file-export text-blue-600 text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">리포트 내보내기</h3>
+                        <p class="text-gray-600">PDF, CSV 형태로 분석 결과를 저장하고 공유할 수 있습니다</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Demo Results Section (Hidden by default) -->
+            <div id="analysisResults" class="hidden">
+                <!-- Header with Channel Info -->
+                <div class="bg-white rounded-lg shadow-sm border p-8 mb-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center space-x-6">
+                            <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center">
+                                <i class="fab fa-youtube text-red-600 text-3xl"></i>
+                            </div>
+                            
+                            <div>
+                                <h1 id="channelTitle" class="text-3xl font-bold text-gray-900 mb-2">MrBeast</h1>
+                                <div class="flex items-center space-x-6 text-gray-600">
+                                    <span><i class="fas fa-users mr-1"></i> <span id="subscriberCount">172M</span> 구독자</span>
+                                    <span><i class="fas fa-video mr-1"></i> <span id="videoCount">741</span> 영상</span>
+                                    <span><i class="fas fa-eye mr-1"></i> <span id="viewCount">28.9B</span> 조회수</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Export Actions -->
+                        <div class="flex items-center space-x-3">
+                            <button class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition duration-200">
+                                <i class="fas fa-file-pdf mr-2"></i>PDF 다운로드
+                            </button>
+                            
+                            <button class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-200">
+                                <i class="fas fa-file-csv mr-2"></i>CSV 내보내기
+                            </button>
+                            
+                            <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-200">
+                                <i class="fas fa-share mr-2"></i>공유
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <p class="text-gray-700 text-sm leading-relaxed">
+                            I want to make the world a better place before I die. Subscribe to be a part of the journey!
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Key Metrics Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white rounded-lg shadow-sm border p-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-sm font-medium text-gray-600">평균 조회수</h3>
+                            <i class="fas fa-eye text-blue-500"></i>
+                        </div>
+                        <p class="text-2xl font-bold text-gray-900">39,081,947</p>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-sm border p-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-sm font-medium text-gray-600">참여율</h3>
+                            <i class="fas fa-heart text-red-500"></i>
+                        </div>
+                        <p class="text-2xl font-bold text-gray-900">4.57%</p>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-sm border p-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-sm font-medium text-gray-600">예상 월 수익</h3>
+                            <i class="fas fa-dollar-sign text-green-500"></i>
+                        </div>
+                        <p class="text-2xl font-bold text-gray-900">$2.1M - $8.4M</p>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-sm border p-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-sm font-medium text-gray-600">분석 영상 수</h3>
+                            <i class="fas fa-video text-purple-500"></i>
+                        </div>
+                        <p class="text-2xl font-bold text-gray-900">50</p>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                    <!-- View Count Distribution -->
+                    <div class="bg-white rounded-lg shadow-sm border p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">조회수 분포</h3>
+                        <canvas id="viewDistributionChart" height="300"></canvas>
+                    </div>
+
+                    <!-- Performance Trend -->
+                    <div class="bg-white rounded-lg shadow-sm border p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">성과 트렌드</h3>
+                        <canvas id="performanceTrendChart" height="300"></canvas>
+                    </div>
+                </div>
+
+                <!-- Top Performing Videos -->
+                <div class="bg-white rounded-lg shadow-sm border p-6 mb-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6">인기 영상 TOP 10</h3>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full">
+                            <thead>
+                                <tr class="border-b border-gray-200">
+                                    <th class="text-left py-3 px-4 font-medium text-gray-600">제목</th>
+                                    <th class="text-right py-3 px-4 font-medium text-gray-600">조회수</th>
+                                    <th class="text-right py-3 px-4 font-medium text-gray-600">좋아요</th>
+                                    <th class="text-right py-3 px-4 font-medium text-gray-600">댓글</th>
+                                    <th class="text-right py-3 px-4 font-medium text-gray-600">참여율</th>
+                                    <th class="text-right py-3 px-4 font-medium text-gray-600">업로드일</th>
+                                </tr>
+                            </thead>
+                            <tbody id="topVideosTable">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CTA Section -->
+            <div class="text-center py-16 bg-gradient-to-r from-red-500 to-red-600 rounded-2xl text-white">
+                <h2 class="text-3xl font-bold mb-4">더 깊은 인사이트가 필요하신가요?</h2>
+                <p class="text-xl mb-8 opacity-90">프리미엄 플랜으로 무제한 분석과 고급 기능을 사용하세요</p>
+                
+                <div class="space-x-4">
+                    <a href="#" class="bg-white text-red-600 px-8 py-3 rounded-lg font-medium hover:bg-gray-50 transition duration-200">
+                        무료로 시작하기
+                    </a>
+                    
+                    <a href="#" class="border-2 border-white text-white px-8 py-3 rounded-lg font-medium hover:bg-white hover:text-red-600 transition duration-200">
+                        프리미엄 요금제 보기
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t mt-16">
+        <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <div class="flex items-center justify-center space-x-2 mb-4">
+                    <i class="fab fa-youtube text-red-600 text-xl"></i>
+                    <span class="text-lg font-bold text-gray-900">Youlytic</span>
+                </div>
+                <p class="text-gray-600 text-sm">
+                    © 2024 Youlytic. YouTube 채널 분석의 새로운 기준.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function startAnalysis() {
+            const input = document.getElementById('channelInput').value;
+            if (!input.trim()) {
+                alert('채널 URL, ID 또는 채널명을 입력해주세요.');
+                return;
+            }
+            
+            analyzeChannel(input);
+        }
+
+        function analyzeChannel(channelName) {
+            // Show loading state
+            const button = event?.target || document.querySelector('button');
+            const originalText = button ? button.innerHTML : '';
+            if (button) {
+                button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>분석 중...';
+                button.disabled = true;
+            }
+
+            // Simulate analysis process
+            setTimeout(() => {
+                showResults(channelName);
+                if (button) {
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                }
+            }, 2000);
+        }
+
+        function showResults(channelName) {
+            // Update channel title
+            document.getElementById('channelTitle').textContent = channelName;
+            
+            // Show results section
+            document.getElementById('analysisResults').classList.remove('hidden');
+            
+            // Scroll to results
+            document.getElementById('analysisResults').scrollIntoView({ 
+                behavior: 'smooth' 
+            });
+
+            // Create charts
+            createCharts();
+            
+            // Populate video table
+            populateVideoTable();
+        }
+
+        function createCharts() {
+            // View Distribution Chart
+            const viewDistributionData = {
+                labels: ['10M+', '1M-10M', '100K-1M', '10K-100K', '0-10K'],
+                datasets: [{
+                    label: '영상 수',
+                    data: [15, 20, 10, 4, 1],
+                    backgroundColor: ['#3b82f6', '#22c55e', '#eab308', '#f97316', '#ef4444'],
+                    borderWidth: 0
+                }]
+            };
+
+            new Chart(document.getElementById('viewDistributionChart'), {
+                type: 'doughnut',
+                data: viewDistributionData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // Performance Trend Chart
+            const performanceData = {
+                labels: ['1월', '2월', '3월', '4월', '5월', '6월'],
+                datasets: [{
+                    label: '평균 조회수',
+                    data: [35000000, 42000000, 38000000, 45000000, 41000000, 39000000],
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            };
+
+            new Chart(document.getElementById('performanceTrendChart'), {
+                type: 'line',
+                data: performanceData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return (value / 1000000).toFixed(0) + 'M';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        function populateVideoTable() {
+            const videos = [
+                { title: "$1 vs $500,000 Experiences!", views: "180M", likes: "8.2M", comments: "892K", engagement: "5.1%", date: "2024.01.15" },
+                { title: "I Gave My 100,000,000th Subscriber An Island", views: "165M", likes: "7.8M", comments: "756K", engagement: "5.2%", date: "2024.02.03" },
+                { title: "50 YouTubers Fight For $1,000,000", views: "140M", likes: "6.9M", comments: "623K", engagement: "5.4%", date: "2024.03.12" },
+                { title: "I Built 100 Wells In Africa", views: "125M", likes: "9.1M", comments: "1.2M", engagement: "8.2%", date: "2024.01.28" },
+                { title: "Ages 1 - 100 Fight For $500,000", views: "118M", likes: "5.8M", comments: "489K", engagement: "5.3%", date: "2024.02.15" }
+            ];
+
+            const tbody = document.getElementById('topVideosTable');
+            tbody.innerHTML = videos.map(video => `
+                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                    <td class="py-3 px-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-12 h-8 bg-gray-200 rounded"></div>
+                            <span class="font-medium text-gray-900 max-w-md truncate">
+                                ${video.title}
+                            </span>
+                        </div>
+                    </td>
+                    <td class="text-right py-3 px-4 text-gray-600">${video.views}</td>
+                    <td class="text-right py-3 px-4 text-gray-600">${video.likes}</td>
+                    <td class="text-right py-3 px-4 text-gray-600">${video.comments}</td>
+                    <td class="text-right py-3 px-4">
+                        <span class="text-green-600">${video.engagement}</span>
+                    </td>
+                    <td class="text-right py-3 px-4 text-gray-600">${video.date}</td>
+                </tr>
+            `).join('');
+        }
+    </script>
+</body>
+</html>

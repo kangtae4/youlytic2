@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Youlytic - YouTube 채널 분석 서비스 (Live Demo)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex items-center space-x-2">
+                        <i class="fab fa-youtube text-red-600 text-2xl"></i>
+                        <span class="text-xl font-bold text-gray-900">Youlytic</span>
+                        <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full ml-2">LIVE</span>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2 text-sm text-gray-600">
+                        <i class="fas fa-chart-line"></i>
+                        <span>실제 YouTube API 연동</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Hero Section -->
+            <div class="text-center py-16">
+                <h1 class="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+                    실시간 YouTube 채널 분석
+                </h1>
+                <p class="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+                    실제 YouTube Data API를 사용해서 채널을 분석합니다
+                </p>
+
+                <!-- Analysis Form -->
+                <div class="max-w-2xl mx-auto">
+                    <div class="space-y-4">
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <input type="text" id="channelInput"
+                                placeholder="채널 ID를 입력하세요 (예: UCX6OQ3DkcsbYNE6H8uQQuVA)" 
+                                class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-lg"
+                                value="UCX6OQ3DkcsbYNE6H8uQQuVA">
+                            
+                            <button onclick="analyzeChannel()" id="analyzeBtn"
+                                class="bg-red-600 text-white px-8 py-3 rounded-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 text-lg font-medium transition duration-200">
+                                실시간 분석
+                            </button>
+                        </div>
+                        
+                        <div class="text-sm text-gray-500">
+                            실제 YouTube API를 사용합니다. 채널 ID 형식: UC로 시작하는 22자리 문자열
+                        </div>
+                    </div>
+
+                    <!-- Quick Examples -->
+                    <div class="mt-8">
+                        <p class="text-sm text-gray-500 mb-4">샘플 채널 ID:</p>
+                        <div class="flex flex-wrap justify-center gap-2">
+                            <button onclick="setChannelId('UCX6OQ3DkcsbYNE6H8uQQuVA')" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-full text-sm text-gray-700 transition duration-200">MrBeast</button>
+                            <button onclick="setChannelId('UC-lHJZR3Gqxm24_Vd_AJ5Yw')" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-full text-sm text-gray-700 transition duration-200">PewDiePie</button>
+                            <button onclick="setChannelId('UCq-Fj5jknLsUf-MWSy4_brA')" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-full text-sm text-gray-700 transition duration-200">T-Series</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loadingState" class="hidden text-center py-16">
+                <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-red-600 mx-auto mb-6"></div>
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">실시간 분석 중...</h2>
+                <p class="text-gray-600" id="loadingText">채널 정보를 가져오고 있습니다...</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="errorState" class="hidden text-center py-16">
+                <div class="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">분석 실패</h2>
+                <p class="text-gray-600 mb-8" id="errorMessage">오류가 발생했습니다.</p>
+                <button onclick="resetAnalysis()" class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700">
+                    다시 시도
+                </button>
+            </div>
+
+            <!-- Analysis Results -->
+            <div id="analysisResults" class="hidden">
+                <!-- Channel Header -->
+                <div class="bg-white rounded-lg shadow-sm border p-8 mb-8">
+                    <div class="flex items-center space-x-6 mb-6">
+                        <img id="channelThumbnail" src="" alt="" class="w-20 h-20 rounded-full">
+                        
+                        <div class="flex-1">
+                            <h1 id="channelTitle" class="text-3xl font-bold text-gray-900 mb-2"></h1>
+                            <div class="flex items-center space-x-6 text-gray-600" id="channelStats">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <p id="channelDescription" class="text-gray-700 text-sm leading-relaxed"></p>
+                    </div>
+                </div>
+
+                <!-- Key Metrics -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8" id="metricsCards">
+                </div>
+
+                <!-- Videos List -->
+                <div class="bg-white rounded-lg shadow-sm border p-6 mb-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6">최신 영상</h3>
+                    <div id="videosList" class="space-y-4">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const API_KEY = 'AIzaSyBRtIjCIBjklW6mBxYpeT8VBhoebWuvA9c';
+        let currentChannelId = '';
+
+        function setChannelId(channelId) {
+            document.getElementById('channelInput').value = channelId;
+        }
+
+        function resetAnalysis() {
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('errorState').classList.add('hidden');
+            document.getElementById('analysisResults').classList.add('hidden');
+        }
+
+        function showLoading(message) {
+            resetAnalysis();
+            document.getElementById('loadingText').textContent = message;
+            document.getElementById('loadingState').classList.remove('hidden');
+        }
+
+        function showError(message) {
+            resetAnalysis();
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('errorState').classList.remove('hidden');
+        }
+
+        function showResults() {
+            resetAnalysis();
+            document.getElementById('analysisResults').classList.remove('hidden');
+            document.getElementById('analysisResults').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function analyzeChannel() {
+            const channelId = document.getElementById('channelInput').value.trim();
+            
+            if (!channelId) {
+                alert('채널 ID를 입력해주세요.');
+                return;
+            }
+
+            if (!channelId.match(/^UC[a-zA-Z0-9_-]{22}$/)) {
+                alert('올바른 채널 ID 형식이 아닙니다. UC로 시작하는 22자리 문자열이어야 합니다.');
+                return;
+            }
+
+            currentChannelId = channelId;
+
+            try {
+                // Step 1: Get channel info
+                showLoading('채널 정보를 가져오고 있습니다...');
+                const channelData = await fetchChannelData(channelId);
+                
+                if (!channelData) {
+                    throw new Error('채널을 찾을 수 없습니다.');
+                }
+
+                // Step 2: Get videos
+                showLoading('영상 목록을 가져오고 있습니다...');
+                const videosData = await fetchChannelVideos(channelId);
+
+                // Step 3: Display results
+                displayResults(channelData, videosData);
+                showResults();
+
+            } catch (error) {
+                console.error('Analysis error:', error);
+                showError(error.message || '분석 중 오류가 발생했습니다.');
+            }
+        }
+
+        async function fetchChannelData(channelId) {
+            const url = `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics,brandingSettings&id=${channelId}&key=${API_KEY}`;
+            
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error.message);
+                }
+                
+                if (!data.items || data.items.length === 0) {
+                    return null;
+                }
+                
+                return data.items[0];
+            } catch (error) {
+                throw new Error('채널 데이터를 가져올 수 없습니다: ' + error.message);
+            }
+        }
+
+        async function fetchChannelVideos(channelId) {
+            // First get the uploads playlist ID
+            const channelUrl = `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${channelId}&key=${API_KEY}`;
+            
+            try {
+                const channelResponse = await fetch(channelUrl);
+                const channelData = await channelResponse.json();
+                
+                if (channelData.error) {
+                    throw new Error(channelData.error.message);
+                }
+                
+                const uploadsPlaylistId = channelData.items[0].contentDetails.relatedPlaylists.uploads;
+                
+                // Get videos from uploads playlist
+                const playlistUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsPlaylistId}&maxResults=10&key=${API_KEY}`;
+                const playlistResponse = await fetch(playlistUrl);
+                const playlistData = await playlistResponse.json();
+                
+                if (playlistData.error) {
+                    throw new Error(playlistData.error.message);
+                }
+                
+                // Get detailed video statistics
+                const videoIds = playlistData.items.map(item => item.snippet.resourceId.videoId).join(',');
+                const videosUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&id=${videoIds}&key=${API_KEY}`;
+                const videosResponse = await fetch(videosUrl);
+                const videosData = await videosResponse.json();
+                
+                if (videosData.error) {
+                    throw new Error(videosData.error.message);
+                }
+                
+                return videosData.items;
+            } catch (error) {
+                throw new Error('영상 데이터를 가져올 수 없습니다: ' + error.message);
+            }
+        }
+
+        function displayResults(channelData, videosData) {
+            const snippet = channelData.snippet;
+            const statistics = channelData.statistics;
+
+            // Channel info
+            document.getElementById('channelThumbnail').src = snippet.thumbnails.default.url;
+            document.getElementById('channelTitle').textContent = snippet.title;
+            document.getElementById('channelDescription').textContent = snippet.description || '설명이 없습니다.';
+
+            // Channel stats
+            const statsHtml = `
+                <span><i class="fas fa-users mr-1"></i> ${formatCount(statistics.subscriberCount)} 구독자</span>
+                <span><i class="fas fa-video mr-1"></i> ${formatCount(statistics.videoCount)} 영상</span>
+                <span><i class="fas fa-eye mr-1"></i> ${formatCount(statistics.viewCount)} 조회수</span>
+            `;
+            document.getElementById('channelStats').innerHTML = statsHtml;
+
+            // Metrics cards
+            const avgViews = videosData.reduce((sum, video) => sum + parseInt(video.statistics.viewCount || 0), 0) / videosData.length;
+            const totalLikes = videosData.reduce((sum, video) => sum + parseInt(video.statistics.likeCount || 0), 0);
+            const totalViews = videosData.reduce((sum, video) => sum + parseInt(video.statistics.viewCount || 0), 0);
+            const engagementRate = totalViews > 0 ? (totalLikes / totalViews * 100) : 0;
+
+            const metricsHtml = `
+                <div class="bg-white rounded-lg shadow-sm border p-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-medium text-gray-600">평균 조회수</h3>
+                        <i class="fas fa-eye text-blue-500"></i>
+                    </div>
+                    <p class="text-2xl font-bold text-gray-900">${formatCount(avgViews)}</p>
+                </div>
+                <div class="bg-white rounded-lg shadow-sm border p-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-medium text-gray-600">참여율</h3>
+                        <i class="fas fa-heart text-red-500"></i>
+                    </div>
+                    <p class="text-2xl font-bold text-gray-900">${engagementRate.toFixed(2)}%</p>
+                </div>
+                <div class="bg-white rounded-lg shadow-sm border p-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-medium text-gray-600">분석 영상 수</h3>
+                        <i class="fas fa-video text-purple-500"></i>
+                    </div>
+                    <p class="text-2xl font-bold text-gray-900">${videosData.length}</p>
+                </div>
+                <div class="bg-white rounded-lg shadow-sm border p-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-medium text-gray-600">총 구독자</h3>
+                        <i class="fas fa-users text-green-500"></i>
+                    </div>
+                    <p class="text-2xl font-bold text-gray-900">${formatCount(statistics.subscriberCount)}</p>
+                </div>
+            `;
+            document.getElementById('metricsCards').innerHTML = metricsHtml;
+
+            // Videos list
+            const videosHtml = videosData.map(video => {
+                const snippet = video.snippet;
+                const stats = video.statistics;
+                const publishedDate = new Date(snippet.publishedAt).toLocaleDateString('ko-KR');
+                
+                return `
+                    <div class="flex items-start space-x-4 p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
+                        <img src="${snippet.thumbnails.default.url}" alt="" class="w-24 h-18 rounded object-cover">
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-gray-900 mb-2 line-clamp-2">${snippet.title}</h4>
+                            <div class="flex items-center space-x-4 text-sm text-gray-600 mb-2">
+                                <span><i class="fas fa-eye mr-1"></i> ${formatCount(stats.viewCount)}</span>
+                                <span><i class="fas fa-thumbs-up mr-1"></i> ${formatCount(stats.likeCount)}</span>
+                                <span><i class="fas fa-comments mr-1"></i> ${formatCount(stats.commentCount)}</span>
+                                <span><i class="fas fa-calendar mr-1"></i> ${publishedDate}</span>
+                            </div>
+                            <p class="text-sm text-gray-500 line-clamp-2">${snippet.description}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('videosList').innerHTML = videosHtml;
+        }
+
+        function formatCount(count) {
+            const num = parseInt(count) || 0;
+            
+            if (num >= 1000000000) {
+                return (num / 1000000000).toFixed(1) + 'B';
+            } else if (num >= 1000000) {
+                return (num / 1000000).toFixed(1) + 'M';
+            } else if (num >= 1000) {
+                return (num / 1000).toFixed(1) + 'K';
+            } else {
+                return num.toLocaleString();
+            }
+        }
+
+        // Auto-analyze MrBeast on page load
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                analyzeChannel();
+            }, 1000);
+        });
+    </script>
+
+    <style>
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+    </style>
+</body>
+</html>

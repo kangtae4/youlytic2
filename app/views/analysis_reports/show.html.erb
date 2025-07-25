@@ -1,0 +1,388 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Status Check for Pending/Processing -->
+  <% if @analysis_report.pending? || @analysis_report.processing? %>
+    <div class="text-center py-16">
+      <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-red-600 mx-auto mb-6"></div>
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">분석 진행 중...</h2>
+      <p class="text-gray-600 mb-8">
+        <% if @analysis_report.pending? %>
+          채널 정보를 수집하고 있습니다. 잠시만 기다려주세요.
+        <% else %>
+          데이터를 분석하고 리포트를 생성하고 있습니다.
+        <% end %>
+      </p>
+      
+      <div class="max-w-md mx-auto bg-gray-200 rounded-full h-2">
+        <div class="bg-red-600 h-2 rounded-full transition-all duration-300 ease-out"
+             style="width: <%= @analysis_report.processing? ? '60%' : '30%' %>"></div>
+      </div>
+      
+      <script>
+        // Auto-refresh every 5 seconds until completed
+        setTimeout(() => {
+          window.location.reload();
+        }, 5000);
+      </script>
+    </div>
+    
+  <% elsif @analysis_report.failed? %>
+    <!-- Error State -->
+    <div class="text-center py-16">
+      <div class="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+        <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+      </div>
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">분석 실패</h2>
+      <p class="text-gray-600 mb-8">
+        분석 중 오류가 발생했습니다: <%= @analysis_report.error_message %>
+      </p>
+      <%= link_to "다시 시도", root_path, class: "bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700" %>
+    </div>
+    
+  <% else %>
+    <!-- Completed Analysis Results -->
+    
+    <!-- Header with Channel Info -->
+    <div class="bg-white rounded-lg shadow-sm border p-8 mb-8">
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center space-x-6">
+          <% if @channel.thumbnail_url %>
+            <img src="<%= @channel.thumbnail_url %>" 
+                 alt="<%= @channel.title %>" 
+                 class="w-20 h-20 rounded-full">
+          <% else %>
+            <div class="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center">
+              <i class="fas fa-user text-gray-400 text-2xl"></i>
+            </div>
+          <% end %>
+          
+          <div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2"><%= @channel.title %></h1>
+            <div class="flex items-center space-x-6 text-gray-600">
+              <span><i class="fas fa-users mr-1"></i> <%= @channel.subscriber_count_formatted %> 구독자</span>
+              <span><i class="fas fa-video mr-1"></i> <%= @channel.video_count.to_s.gsub(/\B(?=(\d{3})+(?!\d))/, ',') %> 영상</span>
+              <span><i class="fas fa-eye mr-1"></i> <%= @channel.view_count_formatted %> 조회수</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Export Actions -->
+        <div class="flex items-center space-x-3">
+          <%= link_to @analysis_report, format: :pdf, class: "bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition duration-200" do %>
+            <i class="fas fa-file-pdf mr-2"></i>PDF 다운로드
+          <% end %>
+          
+          <%= link_to @analysis_report, format: :csv, class: "bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-200" do %>
+            <i class="fas fa-file-csv mr-2"></i>CSV 내보내기
+          <% end %>
+          
+          <% if @analysis_report.permalink_active? %>
+            <button onclick="copyPermalink()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-200">
+              <i class="fas fa-share mr-2"></i>공유
+            </button>
+          <% end %>
+        </div>
+      </div>
+      
+      <% if @channel.description.present? %>
+        <div class="bg-gray-50 rounded-lg p-4">
+          <p class="text-gray-700 text-sm leading-relaxed">
+            <%= truncate(@channel.description, length: 300) %>
+          </p>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Key Metrics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <% if @analysis_report.summary_metrics.present? %>
+        <% metrics = @analysis_report.summary_metrics %>
+        
+        <div class="bg-white rounded-lg shadow-sm border p-6">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-sm font-medium text-gray-600">평균 조회수</h3>
+            <i class="fas fa-eye text-blue-500"></i>
+          </div>
+          <p class="text-2xl font-bold text-gray-900">
+            <%= (metrics['average_views'] || 0).to_i.to_s.gsub(/\B(?=(\d{3})+(?!\d))/, ',') %>
+          </p>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border p-6">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-sm font-medium text-gray-600">참여율</h3>
+            <i class="fas fa-heart text-red-500"></i>
+          </div>
+          <p class="text-2xl font-bold text-gray-900">
+            <%= (metrics['average_engagement_rate'] || 0).round(2) %>%
+          </p>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border p-6">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-sm font-medium text-gray-600">예상 월 수익</h3>
+            <i class="fas fa-dollar-sign text-green-500"></i>
+          </div>
+          <% if @analysis_report.revenue_analysis.present? %>
+            <% revenue = @analysis_report.revenue_analysis['estimated_monthly_revenue'] %>
+            <p class="text-2xl font-bold text-gray-900">
+              $<%= revenue ? "#{revenue['min'].to_i} - #{revenue['max'].to_i}" : 'N/A' %>
+            </p>
+          <% else %>
+            <p class="text-2xl font-bold text-gray-900">계산 중...</p>
+          <% end %>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border p-6">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-sm font-medium text-gray-600">분석 영상 수</h3>
+            <i class="fas fa-video text-purple-500"></i>
+          </div>
+          <p class="text-2xl font-bold text-gray-900">
+            <%= metrics['total_videos_analyzed'] || 0 %>
+          </p>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+      <!-- View Count Distribution -->
+      <div class="bg-white rounded-lg shadow-sm border p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">조회수 분포</h3>
+        <canvas id="viewDistributionChart" height="300"></canvas>
+      </div>
+
+      <!-- Performance Trend -->
+      <div class="bg-white rounded-lg shadow-sm border p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">성과 트렌드</h3>
+        <canvas id="performanceTrendChart" height="300"></canvas>
+      </div>
+    </div>
+
+    <!-- Top Performing Videos -->
+    <div class="bg-white rounded-lg shadow-sm border p-6 mb-8">
+      <h3 class="text-lg font-semibold text-gray-900 mb-6">인기 영상 TOP 10</h3>
+      
+      <div class="overflow-x-auto">
+        <table class="min-w-full">
+          <thead>
+            <tr class="border-b border-gray-200">
+              <th class="text-left py-3 px-4 font-medium text-gray-600">제목</th>
+              <th class="text-right py-3 px-4 font-medium text-gray-600">조회수</th>
+              <th class="text-right py-3 px-4 font-medium text-gray-600">좋아요</th>
+              <th class="text-right py-3 px-4 font-medium text-gray-600">댓글</th>
+              <th class="text-right py-3 px-4 font-medium text-gray-600">참여율</th>
+              <th class="text-right py-3 px-4 font-medium text-gray-600">업로드일</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @videos.limit(10).each do |video| %>
+              <tr class="border-b border-gray-100 hover:bg-gray-50">
+                <td class="py-3 px-4">
+                  <div class="flex items-center space-x-3">
+                    <% if video.thumbnail_url %>
+                      <img src="<%= video.thumbnail_url %>" alt="" class="w-12 h-8 rounded object-cover">
+                    <% end %>
+                    <span class="font-medium text-gray-900 max-w-md truncate">
+                      <%= video.title %>
+                    </span>
+                  </div>
+                </td>
+                <td class="text-right py-3 px-4 text-gray-600">
+                  <%= video.view_count_formatted %>
+                </td>
+                <td class="text-right py-3 px-4 text-gray-600">
+                  <%= video.like_count_formatted %>
+                </td>
+                <td class="text-right py-3 px-4 text-gray-600">
+                  <%= video.comment_count.to_s.gsub(/\B(?=(\d{3})+(?!\d))/, ',') %>
+                </td>
+                <td class="text-right py-3 px-4">
+                  <span class="<%= video.engagement_rate > 5 ? 'text-green-600' : video.engagement_rate > 2 ? 'text-yellow-600' : 'text-red-600' %>">
+                    <%= video.engagement_rate %>%
+                  </span>
+                </td>
+                <td class="text-right py-3 px-4 text-gray-600">
+                  <%= video.published_at&.strftime('%Y.%m.%d') %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Analysis Insights -->
+    <% if @analysis_report.content_analysis.present? %>
+      <div class="bg-white rounded-lg shadow-sm border p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-6">콘텐츠 인사이트</h3>
+        
+        <% content_analysis = @analysis_report.content_analysis %>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div>
+            <h4 class="font-medium text-gray-900 mb-3">업로드 패턴</h4>
+            <div class="space-y-2 text-sm">
+              <div class="flex justify-between">
+                <span class="text-gray-600">월평균 영상:</span>
+                <span class="font-medium"><%= content_analysis.dig('upload_patterns', 'videos_per_month') || 'N/A' %>개</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">가장 활발한 요일:</span>
+                <span class="font-medium"><%= content_analysis.dig('upload_patterns', 'most_active_day') || 'N/A' %></span>
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <h4 class="font-medium text-gray-900 mb-3">콘텐츠 성과</h4>
+            <div class="space-y-2 text-sm">
+              <div class="flex justify-between">
+                <span class="text-gray-600">최적 길이:</span>
+                <span class="font-medium"><%= content_analysis.dig('content_performance', 'best_performing_length') || 'N/A' %></span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">일관성 점수:</span>
+                <span class="font-medium"><%= content_analysis.dig('audience_insights', 'content_consistency') || 'N/A' %>%</span>
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <h4 class="font-medium text-gray-900 mb-3">수익 분석</h4>
+            <% if @analysis_report.revenue_analysis.present? %>
+              <% revenue = @analysis_report.revenue_analysis %>
+              <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                  <span class="text-gray-600">영상당 수익:</span>
+                  <span class="font-medium">$<%= revenue.dig('revenue_per_video', 'min')&.to_i %>-<%= revenue.dig('revenue_per_video', 'max')&.to_i %></span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">RPM:</span>
+                  <span class="font-medium">$<%= revenue.dig('rpm', 'min')&.round(2) %>-<%= revenue.dig('rpm', 'max')&.round(2) %></span>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+</div>
+
+<!-- Permalink Copy Modal -->
+<div id="permalinkModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+  <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+    <div class="mt-3 text-center">
+      <h3 class="text-lg font-medium text-gray-900">분석 결과 공유</h3>
+      <div class="mt-2 px-7 py-3">
+        <p class="text-sm text-gray-500 mb-4">이 링크로 분석 결과를 공유할 수 있습니다.</p>
+        <input type="text" id="permalinkUrl" readonly
+               class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
+      </div>
+      <div class="items-center px-4 py-3">
+        <button onclick="copyToClipboard()" 
+                class="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+          복사
+        </button>
+        <button onclick="closePermalinkModal()" 
+                class="ml-3 px-4 py-2 bg-gray-300 text-gray-800 text-base font-medium rounded-md shadow-sm hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300">
+          닫기
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Chart.js configurations
+<% if @analysis_report.completed? && @videos.any? %>
+  // View Distribution Chart
+  const viewCounts = <%= @videos.pluck(:view_count).to_json.html_safe %>;
+  const viewDistributionData = {
+    labels: ['0-10K', '10K-100K', '100K-1M', '1M-10M', '10M+'],
+    datasets: [{
+      label: '영상 수',
+      data: [
+        viewCounts.filter(v => v < 10000).length,
+        viewCounts.filter(v => v >= 10000 && v < 100000).length,
+        viewCounts.filter(v => v >= 100000 && v < 1000000).length,
+        viewCounts.filter(v => v >= 1000000 && v < 10000000).length,
+        viewCounts.filter(v => v >= 10000000).length
+      ],
+      backgroundColor: ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6'],
+      borderWidth: 0
+    }]
+  };
+
+  new Chart(document.getElementById('viewDistributionChart'), {
+    type: 'doughnut',
+    data: viewDistributionData,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom'
+        }
+      }
+    }
+  });
+
+  // Performance Trend Chart
+  const performanceData = <%= @videos.order(:published_at).limit(20).pluck(:published_at, :view_count).to_json.html_safe %>;
+  
+  new Chart(document.getElementById('performanceTrendChart'), {
+    type: 'line',
+    data: {
+      labels: performanceData.map(d => new Date(d[0]).toLocaleDateString('ko-KR')),
+      datasets: [{
+        label: '조회수',
+        data: performanceData.map(d => d[1]),
+        borderColor: '#ef4444',
+        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+        tension: 0.4,
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function(value) {
+              return value.toLocaleString();
+            }
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          display: false
+        }
+      }
+    }
+  });
+<% end %>
+
+// Permalink functions
+function copyPermalink() {
+  const permalinkUrl = '<%= public_report_url(@analysis_report.permalink_token) if @analysis_report.permalink_active? %>';
+  document.getElementById('permalinkUrl').value = permalinkUrl;
+  document.getElementById('permalinkModal').classList.remove('hidden');
+}
+
+function copyToClipboard() {
+  const urlInput = document.getElementById('permalinkUrl');
+  urlInput.select();
+  document.execCommand('copy');
+  
+  alert('링크가 클립보드에 복사되었습니다!');
+  closePermalinkModal();
+}
+
+function closePermalinkModal() {
+  document.getElementById('permalinkModal').classList.add('hidden');
+}
+</script>
