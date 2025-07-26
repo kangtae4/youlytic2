@@ -8,9 +8,6 @@ RUN apk add --no-cache \
     nodejs \
     npm \
     curl \
-    ca-certificates \
-    wkhtmltopdf \
-    xvfb-run \
     tzdata
 
 # Set working directory
