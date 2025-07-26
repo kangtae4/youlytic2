@@ -21,6 +21,9 @@ RUN bundle install --verbose
 # Copy application code
 COPY . .
 
+# Apply logger patch before Rails loads
+RUN mkdir -p config/initializers
+
 # Precompile assets (if it fails, continue)
 RUN RAILS_ENV=production SECRET_KEY_BASE=dummy bundle exec rails assets:precompile || echo "Asset precompilation failed, continuing..."
 

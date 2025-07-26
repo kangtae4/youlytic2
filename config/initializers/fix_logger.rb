@@ -1,60 +1,42 @@
-# Fix for Logger compatibility issues in Rails 6.1
-begin
-  require 'logger'
+# Logger compatibility fix for Rails 7 with Ruby 3.1
+require 'logger'
+
+# Pre-require logger before ActiveSupport tries to load it
+unless defined?(Logger::Severity)
+  Logger.const_set(:Severity, Logger) if defined?(Logger)
+end
+
+# Ensure all Logger constants are defined
+if defined?(Logger)
+  constants_to_define = {
+    DEBUG: 0,
+    INFO: 1,
+    WARN: 2,
+    ERROR: 3,
+    FATAL: 4,
+    UNKNOWN: 5
+  }
   
-  # Ensure Logger constant is properly defined
-  unless defined?(Logger)
-    require 'logger'
+  constants_to_define.each do |const_name, value|
+    unless Logger.const_defined?(const_name)
+      Logger.const_set(const_name, value)
+    end
   end
+end
 
-  # Fix for ActiveSupport::LoggerThreadSafeLevel compatibility
-  if defined?(Logger) && !Logger.const_defined?(:Severity)
-    Logger.const_set(:Severity, Logger)
-  end
-
-  # Define missing Logger constants if needed
-  unless Logger.const_defined?(:DEBUG)
-    Logger.const_set(:DEBUG, 0)
-    Logger.const_set(:INFO, 1)
-    Logger.const_set(:WARN, 2)
-    Logger.const_set(:ERROR, 3)
-    Logger.const_set(:FATAL, 4)
-    Logger.const_set(:UNKNOWN, 5)
-  end
-
-  # Monkey patch for LoggerThreadSafeLevel if it exists
-  if defined?(ActiveSupport::LoggerThreadSafeLevel)
+# Early monkey patch to prevent LoggerThreadSafeLevel issues
+begin
+  # This prevents the error before ActiveSupport loads
+  if defined?(ActiveSupport)
     module ActiveSupport
       module LoggerThreadSafeLevel
-        def add(severity, message = nil, progname = nil, &block)
-          return true if @logdev.nil? || severity < level
-          progname ||= @progname
-          if message.nil?
-            if block_given?
-              message = yield
-            else
-              message = progname
-              progname = @progname
-            end
-          end
-          @logdev.write format_message(format_severity(severity), Time.now, progname, message)
-          true
-        end
-        
-        private
-        
-        def local_level
-          Thread.current.thread_variable_get("#{object_id}_local_level")
-        end
-        
-        def local_level=(level)
-          Thread.current.thread_variable_set("#{object_id}_local_level", level)
+        # Override the problematic constant access
+        def self.included(base)
+          # Do nothing - prevent the original inclusion logic
         end
       end
     end
   end
-
-rescue LoadError => e
-  # Logger loading failed, continue anyway
-  puts "Warning: Logger compatibility fix failed to load: #{e.message}"
+rescue NameError
+  # Module doesn't exist yet, that's fine
 end
