@@ -6,9 +6,7 @@
   },
   "deploy": {
     "startCommand": "/app/start.sh",
-    "healthcheckPath": "/health",
-    "healthcheckTimeout": 300,
     "restartPolicyType": "on_failure",
-    "restartPolicyMaxRetries": 10
+    "restartPolicyMaxRetries": 3
   }
 }

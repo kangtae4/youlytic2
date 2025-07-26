@@ -11,27 +11,32 @@ Railway 대시보드 > Variables 탭에서 다음 환경 변수들을 설정:
 
 ### 필수 환경 변수
 ```bash
-# Rails
+# Rails (기본값으로도 작동)
 RAILS_ENV=production
-SECRET_KEY_BASE=<Railway에서 자동 생성됨>
+SECRET_KEY_BASE=<Railway에서 자동 생성 또는 비워둬도 됨>
 
-# Database (Railway PostgreSQL 플러그인 사용 시 자동 설정)
-DATABASE_URL=<Railway에서 자동 설정>
+# Database (Railway PostgreSQL 플러그인 추가 후 자동 설정)
+DATABASE_URL=<Railway PostgreSQL 플러그인에서 자동 설정>
 
-# OAuth 설정 (실제 값으로 교체 필요)
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-KAKAO_CLIENT_ID=your_kakao_client_id
-KAKAO_CLIENT_SECRET=your_kakao_client_secret
-NAVER_CLIENT_ID=your_naver_client_id
-NAVER_CLIENT_SECRET=your_naver_client_secret
+# OAuth 설정 (테스트용 - 실제 서비스 시 실제 값으로 교체)
+GOOGLE_CLIENT_ID=test_google_client_id
+GOOGLE_CLIENT_SECRET=test_google_client_secret
+KAKAO_CLIENT_ID=test_kakao_client_id
+KAKAO_CLIENT_SECRET=test_kakao_client_secret
+NAVER_CLIENT_ID=test_naver_client_id
+NAVER_CLIENT_SECRET=test_naver_client_secret
 
-# YouTube API
+# YouTube API (기존 키 사용)
 YOUTUBE_API_KEY=AIzaSyBRtIjCIBjklW6mBxYpeT8VBhoebWuvA9c
 
-# Redis (Railway Redis 플러그인 사용 시 자동 설정)
-REDIS_URL=<Railway에서 자동 설정>
+# Redis (Railway Redis 플러그인 추가 후 자동 설정)
+REDIS_URL=<Railway Redis 플러그인에서 자동 설정>
 ```
+
+### 최소 필수 설정 (서버 시작용)
+1. PostgreSQL 플러그인만 추가하면 기본 실행 가능
+2. OAuth는 테스트 값으로 설정해도 서버는 시작됨
+3. Redis 플러그인은 백그라운드 작업용 (선택사항)
 
 ## 3. 플러그인 추가
 Railway 대시보드에서 다음 플러그인들을 추가:

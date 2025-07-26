@@ -23,13 +23,23 @@ RUN bundle install --without development test
 # Copy application code
 COPY . .
 
-# Create startup script
+# Create startup script with detailed logging
 RUN echo '#!/bin/bash' > /app/start.sh && \
+    echo 'set -e' >> /app/start.sh && \
+    echo 'echo "=== Railway Deployment Started ===" ' >> /app/start.sh && \
+    echo 'echo "Ruby version: $(ruby -v)"' >> /app/start.sh && \
+    echo 'echo "Rails version: $(bundle exec rails -v)"' >> /app/start.sh && \
+    echo 'echo "Setting environment variables..."' >> /app/start.sh && \
     echo 'export SECRET_KEY_BASE=${SECRET_KEY_BASE:-$(openssl rand -hex 64)}' >> /app/start.sh && \
     echo 'export RAILS_ENV=${RAILS_ENV:-production}' >> /app/start.sh && \
-    echo 'bundle exec rails assets:precompile RAILS_ENV=production || true' >> /app/start.sh && \
-    echo 'bundle exec rails db:prepare || true' >> /app/start.sh && \
-    echo 'bundle exec rails server -b 0.0.0.0 -p ${PORT:-3000}' >> /app/start.sh && \
+    echo 'export PORT=${PORT:-3000}' >> /app/start.sh && \
+    echo 'echo "Environment: $RAILS_ENV, Port: $PORT"' >> /app/start.sh && \
+    echo 'echo "Precompiling assets..."' >> /app/start.sh && \
+    echo 'bundle exec rails assets:precompile || echo "Asset precompilation failed, continuing..."' >> /app/start.sh && \
+    echo 'echo "Setting up database..."' >> /app/start.sh && \
+    echo 'bundle exec rails db:prepare || echo "Database setup failed, continuing..."' >> /app/start.sh && \
+    echo 'echo "Starting Rails server on 0.0.0.0:$PORT"' >> /app/start.sh && \
+    echo 'exec bundle exec rails server -b 0.0.0.0 -p $PORT' >> /app/start.sh && \
     chmod +x /app/start.sh
 
 # Expose port
