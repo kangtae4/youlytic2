@@ -2,20 +2,20 @@ source "https://rubygems.org"
 
 ruby "3.1.4"
 
-gem "rails", "~> 6.1.7"
-gem "pg", "~> 1.1"
-gem "puma", "~> 5.0"
-gem "bootsnap", ">= 1.4.4", require: false
+gem "rails", "6.1.7"
+gem "pg", "1.5.4"
+gem "puma", "5.6.7"
+gem "bootsnap", "1.16.0", require: false
 
 # Authentication
-gem "devise"
-gem "omniauth"
-gem "omniauth-google-oauth2"
-gem "omniauth-rails_csrf_protection"
+gem "devise", "4.9.3"
+gem "omniauth", "1.9.2"
+gem "omniauth-google-oauth2", "0.2.6"
+gem "omniauth-rails_csrf_protection", "0.1.2"
 
 # Korean SNS OAuth
-gem "omniauth-kakao"
-gem "omniauth-naver"
+gem "omniauth-kakao", "0.2.0"
+gem "omniauth-naver", "0.2.0"
 
 group :development, :test do
   gem "byebug", platforms: [:mri, :mingw, :x64_mingw]
