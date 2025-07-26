@@ -20,17 +20,10 @@ RUN bundle install
 # Copy application code
 COPY . .
 
-# Create startup script
-RUN echo '#!/bin/bash' > /app/start.sh && \
-    echo 'export SECRET_KEY_BASE=${SECRET_KEY_BASE:-$(openssl rand -hex 64)}' >> /app/start.sh && \
-    echo 'export RAILS_ENV=${RAILS_ENV:-production}' >> /app/start.sh && \
-    echo 'export PORT=${PORT:-3000}' >> /app/start.sh && \
-    echo 'echo "Starting Rails server on port $PORT..."' >> /app/start.sh && \
-    echo 'bundle exec rails db:prepare 2>/dev/null || true' >> /app/start.sh && \
-    echo 'exec bundle exec rails server -b 0.0.0.0 -p $PORT' >> /app/start.sh && \
-    chmod +x /app/start.sh
-
 # Expose port
 EXPOSE 3000
 
-CMD ["/app/start.sh"]
+# Set environment variables
+ENV RAILS_ENV=production
+
+CMD ["sh", "-c", "bundle exec rails db:prepare 2>/dev/null || true && bundle exec rails server -b 0.0.0.0 -p ${PORT:-3000}"]
