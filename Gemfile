@@ -5,7 +5,6 @@ ruby "3.1.4"
 
 gem "rails", "~> 6.1.7"
 gem "pg", "~> 1.1"
-gem "sqlite3", "~> 1.4", group: [:development, :test]
 gem "puma", "~> 5.0"
 gem "sass-rails", ">= 6"
 gem "webpacker", "~> 5.0"
@@ -13,7 +12,6 @@ gem "turbo-rails"
 gem "stimulus-rails"
 gem "jbuilder", "~> 2.7"
 gem "bootsnap", ">= 1.4.4", require: false
-gem "image_processing", "~> 1.2"
 
 # YouTube API and HTTP
 gem "google-api-client"
@@ -21,7 +19,6 @@ gem "httparty"
 
 # Background jobs
 gem "sidekiq"
-# gem "sidekiq-web"
 gem "redis", "~> 4.0"
 
 # Charts and visualization
@@ -42,11 +39,10 @@ gem "omniauth-naver"
 gem "kaminari"
 
 # Environment variables
-gem "dotenv-rails"
+gem "dotenv-rails", groups: [:development, :test]
 
-# PDF generation
+# PDF generation (simplified for production)
 gem "wicked_pdf"
-gem "wkhtmltopdf-binary", group: [:development, :test]
 
 # JSON handling
 gem "oj"

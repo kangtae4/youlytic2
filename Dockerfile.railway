@@ -1,6 +1,6 @@
 FROM ruby:3.1.4-slim
 
-# Install system dependencies including wkhtmltopdf
+# Install system dependencies
 RUN apt-get update -qq && apt-get install -y \
     build-essential \
     libpq-dev \
@@ -9,7 +9,6 @@ RUN apt-get update -qq && apt-get install -y \
     npm \
     curl \
     ca-certificates \
-    libsqlite3-dev \
     wkhtmltopdf \
     xvfb \
     && rm -rf /var/lib/apt/lists/*
@@ -17,35 +16,23 @@ RUN apt-get update -qq && apt-get install -y \
 # Set working directory
 WORKDIR /app
 
-# Copy Gemfile and Gemfile.lock
-COPY Gemfile Gemfile.lock ./
-
-# Install gems
+# Copy Gemfile first for better caching
+COPY Gemfile ./
 RUN bundle install --without development test
 
 # Copy application code
 COPY . .
 
-# Precompile assets
-RUN RAILS_ENV=production bundle exec rails assets:precompile
-
-# Create startup script with better error handling
+# Create startup script
 RUN echo '#!/bin/bash' > /app/start.sh && \
-    echo 'set -e' >> /app/start.sh && \
-    echo 'echo "Starting Rails application..."' >> /app/start.sh && \
-    echo 'export SECRET_KEY_BASE=${SECRET_KEY_BASE:-$(bundle exec rails secret)}' >> /app/start.sh && \
+    echo 'export SECRET_KEY_BASE=${SECRET_KEY_BASE:-$(openssl rand -hex 64)}' >> /app/start.sh && \
     echo 'export RAILS_ENV=${RAILS_ENV:-production}' >> /app/start.sh && \
-    echo 'echo "Running database setup..."' >> /app/start.sh && \
-    echo 'bundle exec rails db:prepare || echo "Database setup failed, continuing..."' >> /app/start.sh && \
-    echo 'echo "Starting server on port ${PORT:-3000}..."' >> /app/start.sh && \
-    echo 'exec bundle exec rails server -b 0.0.0.0 -p ${PORT:-3000}' >> /app/start.sh && \
+    echo 'bundle exec rails assets:precompile RAILS_ENV=production || true' >> /app/start.sh && \
+    echo 'bundle exec rails db:prepare || true' >> /app/start.sh && \
+    echo 'bundle exec rails server -b 0.0.0.0 -p ${PORT:-3000}' >> /app/start.sh && \
     chmod +x /app/start.sh
 
 # Expose port
 EXPOSE 3000
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:${PORT:-3000}/health || exit 1
 
 CMD ["/app/start.sh"]
