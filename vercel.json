@@ -1,0 +1,16 @@
+{
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "nodejs18.x"
+    }
+  },
+  "env": {
+    "GOOGLE_CLIENT_ID": "@google-client-id",
+    "GOOGLE_CLIENT_SECRET": "@google-client-secret",
+    "KAKAO_CLIENT_ID": "@kakao-client-id", 
+    "KAKAO_CLIENT_SECRET": "@kakao-client-secret",
+    "NAVER_CLIENT_ID": "@naver-client-id",
+    "NAVER_CLIENT_SECRET": "@naver-client-secret",
+    "DATABASE_URL": "@database-url"
+  }
+}

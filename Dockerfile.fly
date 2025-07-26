@@ -1,0 +1,38 @@
+FROM ruby:3.1.4-slim
+
+# Install system dependencies
+RUN apt-get update -qq && \
+    apt-get install -y \
+      build-essential \
+      libpq-dev \
+      nodejs \
+      curl \
+      && rm -rf /var/lib/apt/lists/* \
+      && apt-get clean
+
+WORKDIR /app
+
+# Copy Gemfile and install gems
+COPY Gemfile ./
+RUN bundle config set --local deployment 'false' && \
+    bundle config set --local without 'development test' && \
+    bundle install
+
+# Copy application
+COPY . .
+
+# Create public/assets directory
+RUN mkdir -p public/assets
+
+# Set up environment for asset precompilation
+ENV RAILS_ENV=production
+ENV SECRET_KEY_BASE=precompile_dummy_key
+
+# Precompile assets (skip if fails)
+RUN bundle exec rails assets:precompile 2>/dev/null || echo "Asset precompilation skipped"
+
+# Expose port
+EXPOSE 3000
+
+# Start command
+CMD ["bundle", "exec", "rails", "server", "-b", "0.0.0.0", "-p", "3000"]
