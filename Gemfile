@@ -46,7 +46,7 @@ gem "dotenv-rails"
 
 # PDF generation
 gem "wicked_pdf"
-gem "wkhtmltopdf-binary"
+gem "wkhtmltopdf-binary", group: [:development, :test]
 
 # JSON handling
 gem "oj"
