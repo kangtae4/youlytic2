@@ -16,18 +16,22 @@ RUN apt-get update -qq && apt-get install -y \
 # Set working directory
 WORKDIR /app
 
-# Copy Gemfile first for better caching
-COPY Gemfile ./
-RUN bundle install --without development test
+# Copy Gemfile and Gemfile.lock for proper dependency resolution
+COPY Gemfile Gemfile.lock ./
+RUN bundle config set --local deployment 'false' && \
+    bundle config set --local without 'development test' && \
+    bundle install --jobs $(nproc) --retry 3
 
 # Copy application code
 COPY . .
 
-# Create startup script with detailed logging
+# Create startup script with gem verification
 RUN echo '#!/bin/bash' > /app/start.sh && \
     echo 'set -e' >> /app/start.sh && \
     echo 'echo "=== Railway Deployment Started ===" ' >> /app/start.sh && \
     echo 'echo "Ruby version: $(ruby -v)"' >> /app/start.sh && \
+    echo 'echo "Checking gem dependencies..."' >> /app/start.sh && \
+    echo 'bundle check || bundle install' >> /app/start.sh && \
     echo 'echo "Rails version: $(bundle exec rails -v)"' >> /app/start.sh && \
     echo 'echo "Setting environment variables..."' >> /app/start.sh && \
     echo 'export SECRET_KEY_BASE=${SECRET_KEY_BASE:-$(openssl rand -hex 64)}' >> /app/start.sh && \
