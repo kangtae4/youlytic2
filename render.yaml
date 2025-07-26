@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: youlytic2
+    env: ruby
+    buildCommand: bundle install
+    startCommand: bundle exec rails server -b 0.0.0.0 -p $PORT
+    envVars:
+      - key: RAILS_ENV
+        value: production
+      - key: SECRET_KEY_BASE
+        generateValue: true
+      - key: GOOGLE_CLIENT_ID
+        value: test_google_client_id
+      - key: GOOGLE_CLIENT_SECRET
+        value: test_google_client_secret
+      - key: KAKAO_CLIENT_ID
+        value: test_kakao_client_id
+      - key: KAKAO_CLIENT_SECRET
+        value: test_kakao_client_secret
+      - key: NAVER_CLIENT_ID
+        value: test_naver_client_id
+      - key: NAVER_CLIENT_SECRET
+        value: test_naver_client_secret
+
+  - type: pserv
+    name: youlytic2-db
+    env: postgresql
+    disk:
+      name: youlytic2-db
+      mountPath: /var/lib/postgresql/data
+      sizeGB: 1
